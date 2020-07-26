@@ -51,7 +51,7 @@ void setup() {
   }
 
   //add walkers
-  for (int count = 0; count < 1000; count++) {
+  for (int count = 0; count < 50000; count++) {
     createRandomWalker();
   }
 }
@@ -182,7 +182,7 @@ void draw() {
 
         //update pixel array with status of walker
         int index = column + row * width;
-        pixels[index] = color(175, 150, 100);
+        pixels[index] = color(100, 150, 100);
       }
 
       //draw tree member
@@ -229,10 +229,26 @@ void moveDown(Pixel walker) {
   walker.row++;
 }
 
+//void createRandomWalker() {
+//  int randomRow = (int) (Math.random() * height); 
+//  int randomColumn = (int) (Math.random() * width);
+//  if (walkers[randomRow][randomColumn] == null && tree[randomRow][randomColumn] == null){
+//    walkers[randomRow][randomColumn] = new Pixel(false, randomColumn, randomRow);
+//  } else {
+//    createRandomWalker();
+//  }
+  
+//}
+
 void createRandomWalker() {
-  int randomRow = (int) (Math.random() * height); 
-  int randomColumn = (int) (Math.random() * width);
-  walkers[randomRow][randomColumn] = new Pixel(false, randomColumn, randomRow); //TODO check if walker already exists in place
+  int randomRow = (int) (Math.random() * height/2) + height/4; 
+  int randomColumn = (int) (Math.random() * width/2) + width/4;
+  if (walkers[randomRow][randomColumn] == null && tree[randomRow][randomColumn] == null){
+    walkers[randomRow][randomColumn] = new Pixel(false, randomColumn, randomRow);
+  } else {
+    createRandomWalker();
+  }
+  
 }
 
 
