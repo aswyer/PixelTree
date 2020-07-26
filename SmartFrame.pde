@@ -20,6 +20,8 @@ import java.util.concurrent.ThreadLocalRandom;
 Pixel[][] tree;
 Pixel[][] walkers;
 
+float colorOffset = 0;
+
 void setup() {
   //size(1280, 1000);
   fullScreen();
@@ -51,7 +53,7 @@ void setup() {
   }
 
   //add walkers
-  for (int count = 0; count < 50000; count++) {
+  for (int count = 0; count < 500000; count++) {
     createRandomWalker();
   }
 }
@@ -182,17 +184,26 @@ void draw() {
 
         //update pixel array with status of walker
         int index = column + row * width;
-        pixels[index] = color(100, 150, 100);
+        pixels[index] = color(50, 50, 50);
       }
+
 
       //draw tree member
       if (tree[row][column] != null) { 
         int index = column + row * width;
-        pixels[index] = color(255, 255, 255);
+        pixels[index] = color(abs(sin(100-colorOffset))*255, abs(sin(colorOffset))*255, abs(sin((100-colorOffset)/2))*255);
       }
+      
+      
+      
     }
   }
-
+  
+  colorOffset += 0.01;
+  //if (colorOffset > 100) {
+  //  colorOffset = 0;
+  //}
+  
   //DRAW GRID
   //for (int minXLimit = 0, xSection = 0; minXLimit < width; minXLimit += width/gridCount, xSection++) {
   //  for (int minYLimit = 0, ySection = 0; minYLimit < height; minYLimit += height/gridCount, ySection++) {
@@ -229,29 +240,14 @@ void moveDown(Pixel walker) {
   walker.row++;
 }
 
-//void createRandomWalker() {
-//  int randomRow = (int) (Math.random() * height); 
-//  int randomColumn = (int) (Math.random() * width);
-//  if (walkers[randomRow][randomColumn] == null && tree[randomRow][randomColumn] == null){
-//    walkers[randomRow][randomColumn] = new Pixel(false, randomColumn, randomRow);
-//  } else {
-//    createRandomWalker();
-//  }
-  
-//}
-
 void createRandomWalker() {
-  int randomRow = (int) (Math.random() * height/2) + height/4; 
-  int randomColumn = (int) (Math.random() * width/2) + width/4;
+  int randomRow = (int) (Math.random() * height); 
+  int randomColumn = (int) (Math.random() * width);
+  //int randomRow = (int) (Math.random() * height/2) + height/4; 
+  //int randomColumn = (int) (Math.random() * width/2) + width/4;
   if (walkers[randomRow][randomColumn] == null && tree[randomRow][randomColumn] == null){
     walkers[randomRow][randomColumn] = new Pixel(false, randomColumn, randomRow);
   } else {
     createRandomWalker();
-  }
-  
-}
-
-
-int randomDisplacement() {
-  return ThreadLocalRandom.current().nextInt(-1, 1 + 1);
+  } 
 }
