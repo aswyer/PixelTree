@@ -11,7 +11,7 @@ int gravityCenterY;
 
 float colorOffset = 255;
 float GRAVITY_STRENGTH = 0.8;
-int NUMBER_OF_WALKERS = 10000;
+int NUMBER_OF_WALKERS = 20000;
 float CIRCLE_RADIUS_PERCENT = 0.5;
 boolean SHOULD_DISPLAY_WALKERS = true;
 int TIME_BETWEEN_GRAVITY_CHANGES = 10;
@@ -34,43 +34,19 @@ class Pixel {
 }
 
 void setup() {
-  size(1280, 1000);
+  //size(1280, 1000);
   //size(500, 500);
-  //fullScreen();
+  fullScreen();
   
   pixelDensity(1);
   
   background(0);
   
-  tree = new Pixel[height][width];
-  walkers = new Pixel[height][width];
+  setupEmptyArrays();
 
-  for (int row = 0; row < height; row++) {
-    for (int column = 0; column < width; column++) {
-      tree[row][column] = null;
-      walkers[row][column] = null;
-    }
-  }
+  addInitialTree();
 
-  //add tree members
-  int r = (int) ((CIRCLE_RADIUS_PERCENT * height) / 2);
-  int start = width/2-r;
-  int end = width/2+r;
-  for (int x = start; x < end; x++) {
-    //tree[height/2][column] = new Pixel(true, column, height/2);
-
-    int distanceFromCenter = (int) (Math.sqrt( pow(r, 2) - pow(x-width/2, 2) ));
-    int upper = distanceFromCenter + height/2;
-    int lower = -1 * distanceFromCenter + height/2;
-
-    tree[lower][x] = new Pixel(true, x, lower);
-    tree[upper][x] = new Pixel(true, x, upper);
-  }
-
-  //add walkers
-  for (int count = 0; count < NUMBER_OF_WALKERS; count++) {
-    createRandomWalker();
-  }
+  addInitialWalkers();
   
   
   randomizeGravityCenter();
@@ -130,7 +106,7 @@ void draw() {
   }
   
   
-  colorOffset += 0.01;
+  colorOffset += 0.05;
   //if (colorOffset > 100) {
   //  colorOffset = 0;
   //}
@@ -145,6 +121,62 @@ void draw() {
   //}
 
   updatePixels();
+  
+  for(int row = 0; row < height; row++) {
+    if (tree[row][0] != null || tree[row][width-1] != null) {
+      restart();
+      return;
+    }
+  }
+  
+  for(int column = 0; column < width; column++) {
+    if (tree[0][column] != null || tree[height-1][column] != null) {
+      restart();
+      return;
+    }
+  }
+}
+
+void restart() {
+  setupEmptyArrays();
+  addInitialTree();
+  addInitialWalkers();
+}
+
+void setupEmptyArrays() {
+  tree = new Pixel[height][width];
+  walkers = new Pixel[height][width];
+
+  for (int row = 0; row < height; row++) {
+    for (int column = 0; column < width; column++) {
+      tree[row][column] = null;
+      walkers[row][column] = null;
+    }
+  }
+}
+
+void addInitialTree() {
+  //add tree members
+  int r = (int) ((CIRCLE_RADIUS_PERCENT * height) / 2);
+  int start = width/2-r;
+  int end = width/2+r;
+  for (int x = start; x < end; x++) {
+    //tree[height/2][column] = new Pixel(true, column, height/2);
+
+    int distanceFromCenter = (int) (Math.sqrt( pow(r, 2) - pow(x-width/2, 2) ));
+    int upper = distanceFromCenter + height/2;
+    int lower = -1 * distanceFromCenter + height/2;
+
+    tree[lower][x] = new Pixel(true, x, lower);
+    tree[upper][x] = new Pixel(true, x, upper);
+  }
+}
+
+void addInitialWalkers() {
+  //add walkers
+  for (int count = 0; count < NUMBER_OF_WALKERS; count++) {
+    createRandomWalker();
+  }
 }
 
 void calculate(int row, int column) {
