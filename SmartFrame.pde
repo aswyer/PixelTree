@@ -1,3 +1,22 @@
+
+import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
+
+Pixel[][] tree;
+Pixel[][] walkers;
+
+int savedTime;
+int gravityCenterX;
+int gravityCenterY;
+
+float colorOffset = 255;
+float GRAVITY_STRENGTH = 0.8;
+int NUMBER_OF_WALKERS = 10000;
+float CIRCLE_RADIUS_PERCENT = 0.5;
+boolean SHOULD_DISPLAY_WALKERS = true;
+int TIME_BETWEEN_GRAVITY_CHANGES = 10;
+
+
 class Pixel {
   int column;
   int row;
@@ -14,25 +33,17 @@ class Pixel {
   }
 }
 
-import java.util.ArrayList;
-import java.util.concurrent.ThreadLocalRandom;
-
-Pixel[][] tree;
-Pixel[][] walkers;
-
-float colorOffset = 0;
-float moveToCenterStrength = 0.8;
-
 void setup() {
-  //size(1280, 1000);
+  size(1280, 1000);
   //size(500, 500);
-  fullScreen();
+  //fullScreen();
+  
   pixelDensity(1);
+  
+  background(0);
   
   tree = new Pixel[height][width];
   walkers = new Pixel[height][width];
-  
-  background(0);
 
   for (int row = 0; row < height; row++) {
     for (int column = 0; column < width; column++) {
@@ -42,7 +53,7 @@ void setup() {
   }
 
   //add tree members
-  int r = height / 5;
+  int r = (int) ((CIRCLE_RADIUS_PERCENT * height) / 2);
   int start = width/2-r;
   int end = width/2+r;
   for (int x = start; x < end; x++) {
@@ -57,14 +68,26 @@ void setup() {
   }
 
   //add walkers
-  for (int count = 0; count < 100000; count++) {
+  for (int count = 0; count < NUMBER_OF_WALKERS; count++) {
     createRandomWalker();
   }
+  
+  
+  randomizeGravityCenter();
+  savedTime = millis();
 }
 
 
 void draw() {
-  background(0);
+  
+
+  
+  int passedTime = millis()-savedTime;
+  if (passedTime > TIME_BETWEEN_GRAVITY_CHANGES * 1000) {
+    savedTime = millis();
+    
+    randomizeGravityCenter();
+  }
 
   loadPixels();
 
@@ -125,8 +148,6 @@ void draw() {
 }
 
 void calculate(int row, int column) {
-
-
   //move & update walker
   
   if (walkers[row][column] != null) {
@@ -170,9 +191,9 @@ void calculate(int row, int column) {
     //MOVE LEFT OR RIGHT
     //can move either left or right
     if (canMoveRight && canMoveLeft) {
-      float chance = moveToCenterStrength;
-      if (walker.column < width/2) {
-        chance = 1-moveToCenterStrength; //more likely to move right
+      float chance = GRAVITY_STRENGTH;
+      if (walker.column < gravityCenterX) {
+        chance = 1-GRAVITY_STRENGTH; //more likely to move right
       }
       if (Math.random() >= chance) { //move right
         moveRight(walker);
@@ -194,9 +215,9 @@ void calculate(int row, int column) {
     //can move either up or down
     //if (Math.random() >= 0.5) {
     if (canMoveUp && canMoveDown) {
-      float chance = moveToCenterStrength;
-      if (walker.row >= height/2) {
-        chance = 1-moveToCenterStrength; //more likely to move up
+      float chance = GRAVITY_STRENGTH;
+      if (walker.row >= gravityCenterY) {
+        chance = 1-GRAVITY_STRENGTH; //more likely to move up
       }
       if (Math.random() >= chance) { //move up
         moveUp(walker);
@@ -246,15 +267,18 @@ void calculate(int row, int column) {
 
       //unbecome a walker
       walkers[walker.row][walker.column] = null;
+      
       //add new random walker
       createRandomWalker();
     }
 
     //update pixel array with status of walker
-    int index = column + row * width;
-    pixels[index] = color(50, 50, 50);
-    //color(abs(sin(100-colorOffset))*255, abs(sin(colorOffset))*255, abs(sin((100-colorOffset)/2))*255);
-    //color(50, 50, 50);
+    if (SHOULD_DISPLAY_WALKERS) {
+      int previousIndex = column + row * width;
+      pixels[previousIndex] = color(0,0,0);
+      int index = walker.column + walker.row * width;
+      pixels[index] = color(50, 50, 50);
+    }
   }
 
 
@@ -289,17 +313,26 @@ void moveDown(Pixel walker) {
   walker.row++;
 }
 
+
+void randomizeGravityCenter() {
+   gravityCenterX = (int) (Math.random() * width);
+   gravityCenterY = (int) (Math.random() * height);
+   
+   println(gravityCenterX, gravityCenterY);
+}
+
 void createRandomWalker() {
   int randomRow = (int) (Math.random() * height); 
   int randomColumn = (int) (Math.random() * width);
-  //int randomRow = (int) (Math.random() * height/2) + height/4; 
-  //int randomColumn = (int) (Math.random() * width/2) + width/4;
+  //int randomRow = (int) (Math.random() * height/4) + height/2 - height/8; 
+  //int randomColumn = (int) (Math.random() * width/4) + width/2 - width/8;
   if (walkers[randomRow][randomColumn] == null && tree[randomRow][randomColumn] == null) {
     walkers[randomRow][randomColumn] = new Pixel(false, randomColumn, randomRow);
   } else {
     createRandomWalker();
   }
 }
+
 
 //void mousePressed() {
 //  println("START");
