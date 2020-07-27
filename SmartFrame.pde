@@ -317,7 +317,13 @@ void calculate(int row, int column) {
   //draw tree member
   if (tree[row][column] != null) { 
     int index = column + row * width;
-    pixels[index] = color(abs(sin(100-colorOffset))*255, abs(sin(colorOffset))*255, abs(sin((100-colorOffset)/2))*255);
+    float columnOffset = ((float) column / width);
+    float rowOffset = ((float) row / height);
+    pixels[index] = color( 
+      abs( sin(colorOffset + columnOffset) ) * 255, 
+      abs( sin(colorOffset - rowOffset)) * 255, 
+      abs( cos(colorOffset + columnOffset)) * 255
+    );
   }
 }
 
