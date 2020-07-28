@@ -1,7 +1,3 @@
-
-import java.util.ArrayList;
-import java.util.concurrent.ThreadLocalRandom;
-
 Pixel[][] tree;
 Pixel[][] walkers;
 
