@@ -1,7 +1,23 @@
+import processing.core.*; 
+import processing.data.*; 
+import processing.event.*; 
+import processing.opengl.*; 
+
+import java.util.HashMap; 
+import java.util.ArrayList; 
+import java.io.File; 
+import java.io.BufferedReader; 
+import java.io.PrintWriter; 
+import java.io.InputStream; 
+import java.io.OutputStream; 
+import java.io.IOException; 
+
+public class PixelTree extends PApplet {
+
 Pixel[][] tree;
 Pixel[][] walkers;
 
-color[][] scaledPixels;
+int[][] scaledPixels;
 
 int savedTime;
 int gravityCenterX;
@@ -10,9 +26,9 @@ int gravityCenterY;
 float colorOffset = 255;
 
 float GRAVITY_STRENGTH = 1;
-int NUMBER_OF_WALKERS = 50;
+int NUMBER_OF_WALKERS = 12000;
 
-float CIRCLE_RADIUS_PERCENT = 0.02;
+float CIRCLE_RADIUS_PERCENT = 0.02f;
 int NUMBER_OF_STARTING_POINTS = 5;
 
 boolean SHOULD_DISPLAY_WALKERS = true;
@@ -20,15 +36,15 @@ int TIME_BETWEEN_GRAVITY_CHANGES = 3;
 
 int scaleFactor = 5;
 
-int scaledWidth;
-int scaledHeight;
+int screenWidth = width / scaleFactor;
+int screenHeight = height / scaleFactor;
 
 class Pixel {
   int column;
   int row;
   boolean stuck;
   
-  color displayColor = -1;
+  int displayColor = -1;
 
   Pixel(boolean stuck, int column, int row) {
     this.stuck = stuck;
@@ -36,22 +52,20 @@ class Pixel {
     this.row = row;
   }
 
-  String toString() {
+  public String toString() {
     return column + " " + row;
   }
 }
 
-void setup() {
+public void setup() {
   //size(1280, 1000);
-   size(500, 500);
+   
   //fullScreen();
-  pixelDensity(1);
   
+
   noCursor();
-  background(0);
   
-  scaledWidth = width / scaleFactor;
-  scaledHeight = height / scaleFactor;
+  background(0);
   
   setupEmptyArrays();
   addInitialTree();
@@ -62,7 +76,7 @@ void setup() {
 }
 
 
-void draw() {
+public void draw() {
   int passedTime = millis()-savedTime;
   if (passedTime > TIME_BETWEEN_GRAVITY_CHANGES * 1000) {
     savedTime = millis();
@@ -77,32 +91,32 @@ void draw() {
   
   switch(random) {
   case 0:
-    for (int row = 0; row < scaledHeight; row++) {
-      for (int column = 0; column < scaledWidth; column++) {
+    for (int row = 0; row < screenHeight; row++) {
+      for (int column = 0; column < screenWidth; column++) {
         calculate(row, column);
       }
     }
     break;
 
   case 1:
-    for (int row = scaledHeight-1; row >= 0; row--) {
-      for (int column = 0; column < scaledWidth; column++) {
+    for (int row = screenHeight-1; row >= 0; row--) {
+      for (int column = 0; column < screenWidth; column++) {
         calculate(row, column);
       }
     }
     break;
 
   case 2:
-    for (int row = 0; row < scaledHeight; row++) {
-      for (int column = scaledWidth-1; column >= 0; column--) {
+    for (int row = 0; row < screenHeight; row++) {
+      for (int column = screenWidth-1; column >= 0; column--) {
         calculate(row, column);
       }
     }
     break;
 
   case 3:
-    for (int row = scaledHeight-1; row >= 0; row--) {
-      for (int column = scaledWidth-1; column >= 0; column--) {
+    for (int row = screenHeight-1; row >= 0; row--) {
+      for (int column = screenWidth-1; column >= 0; column--) {
         calculate(row, column);
       }
     }
@@ -127,91 +141,47 @@ void draw() {
 
 
   //MAP SCALED PIXELS TO PIXELS
-  //int scaledX = 0;
-  //int xCounter = 0;
+  int scaledX = 0;
+  int xCounter = 0;
 
-  //int scaledY = 0;
-  //int yCounter = 0;
+  int scaledY = 0;
+  int yCounter = 0;
 
-  //for (int row = 0; row < height; row++) {
-    
-  //  scaledX = 0;
-    
-  //    for (int column = 0; column < width; column++) {
-
-  //        int fullIndex = column + row * screenWidth;
-          
-  //        //print(pixels[fullIndex]);
-  //        //print(scaledPixels[scaledY][scaledX]);
-  //        print(scaledY + " " + scaledX + "\n");
-          
-  //        pixels[fullIndex] = scaledPixels[scaledY][scaledX];
-          
-  //        if (xCounter < scaleFactor - 1) {
-  //          xCounter++;
-  //        } else {
-  //          scaledX += 1;
-  //          xCounter = 0;
-  //        }
-
-  //    }
-      
-  //    scaledX = 0;
-      
-  //    if (yCounter < scaleFactor - 1) {
-  //      yCounter++;
-  //    } else {
-  //      scaledY += 1;
-  //      yCounter = 0;
-  //    }
-  //}
-  
-  
-
-  for (int row = 0; row < height; row++) {
+  for (int row = height-1; row >= 0; row--) {
       for (int column = 0; column < width; column++) {
 
-          int fullIndex = column + row * scaledWidth;
-          
-          //print(row/scaleFactor + " " + column/scaleFactor + "\n");
-          pixels[fullIndex] = scaledPixels[row/scaleFactor][column/scaleFactor];
-
+        int fullIndex = column + row * screenWidth;
+        pixels[fullIndex] = scaledPixels[scaledY][scaledX];
+        
+        if (xCounter >= scaleFactor) {
+          scaledX += 1;
+          xCounter = 0;
+        } else {
+          xCounter++;
+        }
+        
+      }
+      
+      if (yCounter >= scaleFactor) {
+          scaledY += 1;
+          yCounter = 0;
+      } else {
+        yCounter++;
       }
   }
-  
-  
-  
-  //for (int scaledRow = 0; scaledRow < scaledHeight; scaledRow++) {
-  //  for (int scaledColumn = 0; scaledColumn < scaledWidth; scaledColumn++) {
-        
-  //    print(scaledColumn + " " + scaledRow + "\n");
-      
-  //    for (int regularRow = scaledRow * scaleFactor; regularRow <= scaledRow * (scaleFactor+1); regularRow++) {
-  //        for (int regularColumn = scaledColumn * scaleFactor; regularColumn <= scaledColumn * (scaleFactor+1); regularColumn++) {
-        
-  //          int fullIndex = regularColumn + regularRow * scaledWidth;
-  //          pixels[fullIndex] = scaledPixels[scaledRow][scaledColumn];
-      
-  //      }
-  //    }
-      
-      
-  //  }
-  //}
-  
   updatePixels();
   
 
   //RESTART
-  for(int row = 0; row < scaledHeight; row++) {
-    if (tree[row][0] != null || tree[row][scaledWidth-1] != null) {
+  for(int row = 0; row < screenHeight; row++) {
+    if (tree[row][0] != null || tree[row][screenWidth-1] != null) {
       restart();
       return;
     }
   }
   
-  for(int column = 0; column < scaledWidth; column++) {
-    if (tree[0][column] != null || tree[scaledHeight-1][column] != null) {
+  for(int column = 0; column < screenWidth; column++) {
+    if (tree[0][column] != null || tree[screenHeight-1][column] != null) {
       restart();
       return;
     }
@@ -219,10 +189,10 @@ void draw() {
 
 
   //COLOR OFFSET
-  colorOffset += 0.002;
+  colorOffset += 0.002f;
 }
 
-void restart() {
+public void restart() {
   setupEmptyArrays();
 
   //remove some tree members
@@ -240,33 +210,32 @@ void restart() {
   addInitialWalkers();
 }
 
-void setupEmptyArrays() {
+public void setupEmptyArrays() {
 
-  scaledPixels = new color[scaledHeight][scaledWidth];
+  scaledPixels = new int[screenHeight][screenWidth];
   
-  tree = new Pixel[scaledHeight][scaledWidth];
-  walkers = new Pixel[scaledHeight][scaledWidth];
+  tree = new Pixel[screenHeight][screenWidth];
+  walkers = new Pixel[screenHeight][screenWidth];
 
-  for (int row = 0; row < scaledHeight; row++) {
-    for (int column = 0; column < scaledWidth; column++) {
+  for (int row = 0; row < screenHeight; row++) {
+    for (int column = 0; column < screenWidth; column++) {
       tree[row][column] = null;
       walkers[row][column] = null;
-      scaledPixels[row][column] = color(0,0,0);
     }
   }
 }
 
-void addInitialTree() {
+public void addInitialTree() {
   //CIRCLE
-  int r = (int) ((CIRCLE_RADIUS_PERCENT * scaledHeight) / 2);
-  int start = scaledWidth/2-r;
-  int end = scaledWidth/2+r;
+  int r = (int) ((CIRCLE_RADIUS_PERCENT * screenHeight) / 2);
+  int start = screenWidth/2-r;
+  int end = screenWidth/2+r;
   for (int x = start; x < end; x++) {
    //tree[screenHeight/2][column] = new Pixel(true, column, screenHeight/2);
 
-   int distanceFromCenter = (int) (Math.sqrt( pow(r, 2) - pow(x-scaledWidth/2, 2) ));
-   int upper = distanceFromCenter + scaledHeight/2;
-   int lower = -1 * distanceFromCenter + scaledHeight/2;
+   int distanceFromCenter = (int) (Math.sqrt( pow(r, 2) - pow(x-screenWidth/2, 2) ));
+   int upper = distanceFromCenter + screenHeight/2;
+   int lower = -1 * distanceFromCenter + screenHeight/2;
 
    tree[lower][x] = new Pixel(true, x, lower);
    tree[upper][x] = new Pixel(true, x, upper);
@@ -288,14 +257,14 @@ void addInitialTree() {
   
 }
 
-void addInitialWalkers() {
+public void addInitialWalkers() {
   //add walkers
   for (int count = 0; count < NUMBER_OF_WALKERS; count++) {
     createRandomWalker();
   }
 }
 
-void calculate(int row, int column) {
+public void calculate(int row, int column) {
   //move & update walker
   
   if (walkers[row][column] != null) {
@@ -304,7 +273,7 @@ void calculate(int row, int column) {
 
     //check for walkers surrounding & walls then randomly move
     boolean canMoveRight = false;
-    if (column + 1 < scaledWidth) { 
+    if (column + 1 < screenWidth) { 
       if (walkers[row][column+1] == null) {
         canMoveRight = true;
       }
@@ -322,7 +291,7 @@ void calculate(int row, int column) {
       }
     }
     boolean canMoveDown = false; 
-    if (row + 1 < scaledHeight) {
+    if (row + 1 < screenHeight) {
       if (walkers[row+1][column] == null) {
         canMoveDown = true;
       }
@@ -335,7 +304,7 @@ void calculate(int row, int column) {
     //println(row + " " + column);
 
     
-    if (Math.random() >= 0.5) {
+    if (Math.random() >= 0.5f) {
     //MOVE LEFT OR RIGHT
     //can move either left or right
     if (canMoveRight && canMoveLeft) {
@@ -385,7 +354,7 @@ void calculate(int row, int column) {
 
     //check for tree members surrounding. become a tree memeber or stay a walker.
     boolean hasRightTreeMember = false;
-    if (column + 1 < scaledWidth) {
+    if (column + 1 < screenWidth) {
       if (tree[row][column+1] != null) {
         hasRightTreeMember = true;
       }
@@ -403,7 +372,7 @@ void calculate(int row, int column) {
       }
     }
     boolean hasBottomTreeMember = false;
-    if (row + 1 < scaledHeight) {
+    if (row + 1 < screenHeight) {
       if (tree[row+1][column] != null) {
         hasBottomTreeMember = true;
       }
@@ -432,8 +401,8 @@ void calculate(int row, int column) {
   //draw tree member
   if (tree[row][column] != null) { 
     
-    float columnOffset = ((float) column / scaledWidth);
-    float rowOffset = ((float) row / scaledHeight);
+    float columnOffset = ((float) column / screenWidth);
+    float rowOffset = ((float) row / screenHeight);
     
     Pixel currentPixel = tree[row][column];
     
@@ -461,41 +430,41 @@ void calculate(int row, int column) {
   
 }
 
-void moveRight(Pixel walker) {
+public void moveRight(Pixel walker) {
   walkers[walker.row][walker.column+1] = walker;
   walkers[walker.row][walker.column] = null;
   walker.column++;
 }
 
-void moveLeft(Pixel walker) {
+public void moveLeft(Pixel walker) {
   walkers[walker.row][walker.column-1] = walker;
   walkers[walker.row][walker.column] = null;
   walker.column--;
 }
 
-void moveUp(Pixel walker) {
+public void moveUp(Pixel walker) {
   walkers[walker.row-1][walker.column] = walker;
   walkers[walker.row][walker.column] = null;
   walker.row--;
 }
 
-void moveDown(Pixel walker) {
+public void moveDown(Pixel walker) {
   walkers[walker.row+1][walker.column] = walker;
   walkers[walker.row][walker.column] = null;
   walker.row++;
 }
 
 
-void randomizeGravityCenter() {
-   gravityCenterX = (int) (Math.random() * scaledWidth);
-   gravityCenterY = (int) (Math.random() * scaledHeight);
+public void randomizeGravityCenter() {
+   gravityCenterX = (int) (Math.random() * screenWidth);
+   gravityCenterY = (int) (Math.random() * screenHeight);
    
    println(gravityCenterX, gravityCenterY);
 }
 
-void createRandomWalker() {
-  int randomRow = (int) (Math.random() * scaledHeight); 
-  int randomColumn = (int) (Math.random() * scaledWidth);
+public void createRandomWalker() {
+  int randomRow = (int) (Math.random() * screenHeight); 
+  int randomColumn = (int) (Math.random() * screenWidth);
   //int randomRow = (int) (Math.random() * screenHeight/4) + screenHeight/2 - screenHeight/8; 
   //int randomColumn = (int) (Math.random() * screenWidth/4) + screenWidth/2 - screenWidth/8;
   if (walkers[randomRow][randomColumn] == null && tree[randomRow][randomColumn] == null) {
@@ -514,3 +483,13 @@ void createRandomWalker() {
 //  }
 //  println("END");
 //}
+  public void settings() {  size(500, 500);  pixelDensity(1); }
+  static public void main(String[] passedArgs) {
+    String[] appletArgs = new String[] { "PixelTree" };
+    if (passedArgs != null) {
+      PApplet.main(concat(appletArgs, passedArgs));
+    } else {
+      PApplet.main(appletArgs);
+    }
+  }
+}
