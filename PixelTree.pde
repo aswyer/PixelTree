@@ -10,7 +10,7 @@ int gravityCenterY;
 float colorOffset = 255;
 
 float GRAVITY_STRENGTH = 1;
-int NUMBER_OF_WALKERS = 50;
+int NUMBER_OF_WALKERS = 5000;
 
 float CIRCLE_RADIUS_PERCENT = 0.02;
 int NUMBER_OF_STARTING_POINTS = 5;
@@ -18,7 +18,7 @@ int NUMBER_OF_STARTING_POINTS = 5;
 boolean SHOULD_DISPLAY_WALKERS = true;
 int TIME_BETWEEN_GRAVITY_CHANGES = 3;
 
-int scaleFactor = 5;
+int scaleFactor = 2;
 
 int scaledWidth;
 int scaledHeight;
@@ -43,8 +43,8 @@ class Pixel {
 
 void setup() {
   //size(1280, 1000);
-   size(500, 500);
-  //fullScreen();
+   //size(500, 500);
+  fullScreen();
   pixelDensity(1);
   
   noCursor();
@@ -171,7 +171,7 @@ void draw() {
   for (int row = 0; row < height; row++) {
       for (int column = 0; column < width; column++) {
 
-          int fullIndex = column + row * scaledWidth;
+          int fullIndex = column + row * width;
           
           //print(row/scaleFactor + " " + column/scaleFactor + "\n");
           pixels[fullIndex] = scaledPixels[row/scaleFactor][column/scaleFactor];
