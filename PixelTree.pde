@@ -10,7 +10,7 @@ int gravityCenterY;
 float colorOffset = 255;
 
 float GRAVITY_STRENGTH = 1;
-int NUMBER_OF_WALKERS = 10000;
+int NUMBER_OF_WALKERS = 1000;
 
 float CIRCLE_RADIUS_PERCENT = 0.05;
 int NUMBER_OF_STARTING_POINTS = 5;
@@ -49,6 +49,8 @@ void setup() {
   //fullScreen();
   pixelDensity(1);
   
+  frameRate(120);
+  
   noCursor();
   background(0);
   
@@ -73,58 +75,28 @@ void draw() {
     
     randomizeGravityCenter();
   }
-
-  loadPixels();
-
-  //loop over each row & column
-  int random = (int) (Math.random() * 3);
   
-  switch(random) {
-  case 0:
-    for (int row = 0; row < scaledHeight; row++) {
-      for (int column = 0; column < scaledWidth; column++) {
-        calculate(row, column);
-      }
+  for (int row = 0; row < scaledHeight; row++) {
+    for (int column = 0; column < scaledWidth; column++) {
+      calculate(row, column);
     }
-    break;
-
-  case 1:
-    for (int row = scaledHeight-1; row >= 0; row--) {
-      for (int column = 0; column < scaledWidth; column++) {
-        calculate(row, column);
-      }
-    }
-    break;
-
-  case 2:
-    for (int row = 0; row < scaledHeight; row++) {
-      for (int column = scaledWidth-1; column >= 0; column--) {
-        calculate(row, column);
-      }
-    }
-    break;
-
-  case 3:
-    for (int row = scaledHeight-1; row >= 0; row--) {
-      for (int column = scaledWidth-1; column >= 0; column--) {
-        calculate(row, column);
-      }
-    }
-    break; 
   }
 
+  loadPixels();
+  
   for (int row = 0; row < height; row++) {
       for (int column = 0; column < width; column++) {
-
+        
           int fullIndex = column + row * width;
-          
-          //print(row/scaleFactor + " " + column/scaleFactor + "\n");
           pixels[fullIndex] = scaledPixels[row/scaleFactor][column/scaleFactor];
 
       }
   }
   
   updatePixels();
+  
+  //COLOR OFFSET
+  colorOffset += 0.002;
 
   //RESTART
   for(int row = 0; row < scaledHeight; row++) {
@@ -141,13 +113,12 @@ void draw() {
     }
   }
 
-  //COLOR OFFSET
-  colorOffset += 0.002;
 
+  //Debug Timings
   int debugDeltaTime = millis() - debugStartTime;
   debugRunTimes.add("" + debugDeltaTime);
   
-  if (frameCount > 60*15) {
+  if (frameCount > 120*15) {
     
     String[] stockArr = new String[debugRunTimes.size()];
     stockArr = debugRunTimes.toArray(stockArr);
@@ -187,9 +158,8 @@ void addInitialTree() {
   int r = (int) ((CIRCLE_RADIUS_PERCENT * scaledHeight) / 2);
   int start = scaledWidth/2-r;
   int end = scaledWidth/2+r;
+  
   for (int x = start; x < end; x++) {
-   //tree[screenHeight/2][column] = new Pixel(true, column, screenHeight/2);
-
    int distanceFromCenter = (int) (Math.sqrt( pow(r, 2) - pow(x-scaledWidth/2, 2) ));
    int upper = distanceFromCenter + scaledHeight/2;
    int lower = -1 * distanceFromCenter + scaledHeight/2;
