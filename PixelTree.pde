@@ -10,18 +10,20 @@ int gravityCenterY;
 float colorOffset = 255;
 
 float GRAVITY_STRENGTH = 1;
-int NUMBER_OF_WALKERS = 5000;
+int NUMBER_OF_WALKERS = 10000;
 
-float CIRCLE_RADIUS_PERCENT = 0.02;
+float CIRCLE_RADIUS_PERCENT = 0.05;
 int NUMBER_OF_STARTING_POINTS = 5;
 
 boolean SHOULD_DISPLAY_WALKERS = true;
-int TIME_BETWEEN_GRAVITY_CHANGES = 3;
+int TIME_BETWEEN_GRAVITY_CHANGES = 1;
 
 int scaleFactor = 2;
 
 int scaledWidth;
 int scaledHeight;
+
+ArrayList<String> debugRunTimes = new ArrayList<String>();
 
 class Pixel {
   int column;
@@ -42,9 +44,9 @@ class Pixel {
 }
 
 void setup() {
-  //size(1280, 1000);
-   //size(500, 500);
-  fullScreen();
+  size(1000, 1000);
+  //size(500, 500);
+  //fullScreen();
   pixelDensity(1);
   
   noCursor();
@@ -63,6 +65,8 @@ void setup() {
 
 
 void draw() {
+  int debugStartTime = millis();
+
   int passedTime = millis()-savedTime;
   if (passedTime > TIME_BETWEEN_GRAVITY_CHANGES * 1000) {
     savedTime = millis();
@@ -106,67 +110,8 @@ void draw() {
         calculate(row, column);
       }
     }
-    break;
-    
+    break; 
   }
-  
-  
-  // colorOffset += 0.0005;
-  //if (colorOffset > 100) {
-  //  colorOffset = 0;
-  //}
-
-  //DRAW GRID
-  //for (int minXLimit = 0, xSection = 0; minXLimit < screenWidth; minXLimit += screenWidth/gridCount, xSection++) {
-  //  for (int minYLimit = 0, ySection = 0; minYLimit < screenHeight; minYLimit += screenHeight/gridCount, ySection++) {
-  //    stroke(100);
-  //    strokeWeight(1);
-  //    rect(minXLimit, minYLimit, screenWidth/gridCount, screenHeight/gridCount);
-  //  }
-  //}
-
-
-  //MAP SCALED PIXELS TO PIXELS
-  //int scaledX = 0;
-  //int xCounter = 0;
-
-  //int scaledY = 0;
-  //int yCounter = 0;
-
-  //for (int row = 0; row < height; row++) {
-    
-  //  scaledX = 0;
-    
-  //    for (int column = 0; column < width; column++) {
-
-  //        int fullIndex = column + row * screenWidth;
-          
-  //        //print(pixels[fullIndex]);
-  //        //print(scaledPixels[scaledY][scaledX]);
-  //        print(scaledY + " " + scaledX + "\n");
-          
-  //        pixels[fullIndex] = scaledPixels[scaledY][scaledX];
-          
-  //        if (xCounter < scaleFactor - 1) {
-  //          xCounter++;
-  //        } else {
-  //          scaledX += 1;
-  //          xCounter = 0;
-  //        }
-
-  //    }
-      
-  //    scaledX = 0;
-      
-  //    if (yCounter < scaleFactor - 1) {
-  //      yCounter++;
-  //    } else {
-  //      scaledY += 1;
-  //      yCounter = 0;
-  //    }
-  //}
-  
-  
 
   for (int row = 0; row < height; row++) {
       for (int column = 0; column < width; column++) {
@@ -179,28 +124,7 @@ void draw() {
       }
   }
   
-  
-  
-  //for (int scaledRow = 0; scaledRow < scaledHeight; scaledRow++) {
-  //  for (int scaledColumn = 0; scaledColumn < scaledWidth; scaledColumn++) {
-        
-  //    print(scaledColumn + " " + scaledRow + "\n");
-      
-  //    for (int regularRow = scaledRow * scaleFactor; regularRow <= scaledRow * (scaleFactor+1); regularRow++) {
-  //        for (int regularColumn = scaledColumn * scaleFactor; regularColumn <= scaledColumn * (scaleFactor+1); regularColumn++) {
-        
-  //          int fullIndex = regularColumn + regularRow * scaledWidth;
-  //          pixels[fullIndex] = scaledPixels[scaledRow][scaledColumn];
-      
-  //      }
-  //    }
-      
-      
-  //  }
-  //}
-  
   updatePixels();
-  
 
   //RESTART
   for(int row = 0; row < scaledHeight; row++) {
@@ -217,24 +141,26 @@ void draw() {
     }
   }
 
-
   //COLOR OFFSET
   colorOffset += 0.002;
+
+  int debugDeltaTime = millis() - debugStartTime;
+  debugRunTimes.add("" + debugDeltaTime);
+  
+  if (frameCount > 60*15) {
+    
+    String[] stockArr = new String[debugRunTimes.size()];
+    stockArr = debugRunTimes.toArray(stockArr);
+    
+    saveStrings("times.txt",stockArr);
+    println("SAVED");
+    
+    exit();
+  }
 }
 
 void restart() {
   setupEmptyArrays();
-
-  //remove some tree members
-  // for (int row = 0; row < screenHeight; row++) {
-  // for (int column = 0; column < screenWidth; column++) {
-  //   if (Math.random() > 0.02) {
-  //     tree[row][column] = null;
-  //   }
-
-  //   walkers[row][column] = null;
-  // }
-  // }
 
   addInitialTree();
   addInitialWalkers();
@@ -490,7 +416,7 @@ void randomizeGravityCenter() {
    gravityCenterX = (int) (Math.random() * scaledWidth);
    gravityCenterY = (int) (Math.random() * scaledHeight);
    
-   println(gravityCenterX, gravityCenterY);
+   //println(gravityCenterX, gravityCenterY);
 }
 
 void createRandomWalker() {
