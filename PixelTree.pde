@@ -44,9 +44,9 @@ class Pixel {
 }
 
 void setup() {
-  size(1000, 1000);
+  //size(1000, 1000);
   //size(500, 500);
-  //fullScreen();
+  fullScreen();
   pixelDensity(1);
   
   frameRate(120);
